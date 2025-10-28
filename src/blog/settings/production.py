@@ -1,4 +1,4 @@
-from ..settings import *
+from .base import *
 
 DEBUG = False
 ALLOWED_HOSTS = config('AllOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
