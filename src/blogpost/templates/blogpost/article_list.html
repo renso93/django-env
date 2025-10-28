@@ -24,7 +24,7 @@
                         <h5 class="card-title">
                             <a href="{{ article.get_absolute_url }}"  class="text-decoration-none">{{ article.title }}</a>
                         </h5>
-                        <p class="crad-text">{{ article.content | truncateword: 30 }}</p>
+                        <p class="crad-text">{{ article.content|truncatewords:30 }}</p>
                         <small class="text-muted">
                             Par {{article.author.username }} le {{ article.created_at|date:"d/m/Y" }}
                             - {{ article.views }} vue{{ article.views|pluralize }}
