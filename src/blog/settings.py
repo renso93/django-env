@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+from decouple import config
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -24,9 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = "django-insecure-c&#*9%*h4%%l4e3*jp0op&*vu8+h##a9vpn@9#ud*h(8t_l_01"
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost', cast=lambda v: [s.strip() for s in v.split(',')])
 
 
 # Application definition
@@ -76,11 +77,16 @@ WSGI_APPLICATION = "blog.wsgi.application"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
 DATABASES = {
-    "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': config('DB_NAME',  default='blog'),   # nom de la base de données
+        'USER': config('DB_USER', default='postgres'), # nom d’utilisateur PostgreSQL
+        'PASSWORD': config('DB_PASSWORD', default=''),  # mot de passe PostgreSQL
+        'HOST': config('DB_HOST', default='localhost'),  # ou l’adresse du serveur
+        'PORT': config('DB_PORT', default='5432'),       # port PostgreSQL
     }
 }
+
 
 
 # Password validation
@@ -102,6 +108,9 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 
+# Custom user model
+AUTH_USER_MODEL = 'blogpost.CustomUser'
+
 # Internationalization
 # https://docs.djangoproject.com/en/5.2/topics/i18n/
 
@@ -119,7 +128,7 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+#STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
 
 
 MEDIA_URL = "/media/"

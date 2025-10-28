@@ -74,7 +74,7 @@ class BlogPost(models.Model):
     slug = models.SlugField(max_length=200, unique=True)
     content = models.TextField()
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='blog_posts')
-    category = models.ForeignKey(Category, on_delete=models.SET_NULL , blank=True)
+    category = models.ForeignKey(Category, on_delete=models.SET_NULL , blank=True, null=True, related_name='blog_posts')
     tags = models.ManyToManyField('Tag', blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
     featured_image = models.ImageField(upload_to='blog_images/', blank=True, null=True)
