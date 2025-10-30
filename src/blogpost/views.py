@@ -13,7 +13,7 @@ from .forms import BlogPostForm
 # Create your views here.
 class BlogPostListView(ListView):
     model = BlogPost
-    template_name = 'blogpost/article_list.html'
+    template_name = 'blogpost/blogpost_list.html'
     context_object_name = 'articles'
     paginate_by = 10
 
@@ -30,7 +30,7 @@ class BlogPostListView(ListView):
 
 class BlogPostDetailView(DetailView):
     model = BlogPost
-    template_name = 'blogpost/article_detail.html'
+    template_name = 'blogpost/blogpost_detail.html'
     context_object_name = 'article'
 
     def get_object(self):
@@ -43,7 +43,7 @@ class BlogPostDetailView(DetailView):
 class BlogPostCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
     model = BlogPost
     from_class = BlogPostForm
-    template_name = 'blogpost/article_form.html'
+    template_name = 'blogpost/blogpost_form.html'
     success_message = "Article créé avec succès!"
 
     def form_valid(self, form):
@@ -54,7 +54,7 @@ class BlogPostCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 class BlogPostUpdateView(UpdateView):
     model = BlogPost
     form_class = BlogPostForm
-    template_name = 'blogpost/article_form.html'
+    template_name = 'blogpost/blogpost_form.html'
 
     def tes_func(self):
         article = self.get_object()
