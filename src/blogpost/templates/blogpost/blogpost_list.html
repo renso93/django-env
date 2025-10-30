@@ -1,75 +1,202 @@
 {% extends 'base.html' %}
+{% load static %}
+
 {% block title %}Articles - {{ block.super }}{% endblock title %}
 
 {% block content %}
-    <div class="row">
-        <div class="col-md-8">
-            <h1>Articles</h1>
-
-            <form action="" method="GET" class="mb-4">
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control" placeholder="Rechercher..." value="{{ request.GET.search }}">
-                    <button type="submit" class="btn btn-outline-secondary">Rechercher</button>
-                </div>
-            </form>
-
-            
-            {% for article in articles %}
-                <article class="card mb-4">
-                    
-                    {% if article.featured_image %}
-                        <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="card-img-top">
-                    {% endif %}
-                    <div class="card-body">
-                        <h5 class="card-title">
-                            <a href="{{ article.get_absolute_url }}"  class="text-decoration-none">{{ article.title }}</a>
-                        </h5>
-                        <p class="crad-text">{{ article.content|truncatewords:30 }}</p>
-                        <small class="text-muted">
-                            Par {{article.author.username }} le {{ article.created_at|date:"d/m/Y" }}
-                            - {{ article.views }} vue{{ article.views|pluralize }}
-                        </small>
-                    </div>
-                </article>
-            {% empty %}
-                <P>Aucun article trouvé.</P>
-            {% endfor %}
-                
-            
-            {% if is_paginated %}
-                <nav>
-                    <ul class="pagination">
-                        
-                        {% if page_obj.has_previous %}
-                            <li class="page-item">
-                                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="page-link">Précédent</a>
-                            </li>
-                        {% endif %}
-                          
-                        <li class="page-item active">
-                            <span class="page-link">Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}</span>
-                        </li>
-                        
-                        {% if page_obj.has_next %}
-                            <li class="page-item">
-                                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}" class="page-link">Suivant</a>
-                            </li>
-                        {% endif %}
-                            
-                    </ul>
-                </nav>
+<div class="row">
+    <div class="col-md-8">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 class="h2">Articles</h1>
+            {% if user.is_authenticated %}
+                <a href="{% url 'blogpost_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nouvel article
+                </a>
             {% endif %}
-                
         </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">Catégories</div>
+        <!-- Barre de recherche -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-8">
+                        <input type="text" name="search" class="form-control" 
+                               placeholder="Rechercher un article..." 
+                               value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-4">
+                        <select name="category" class="form-select">
+                            <option value="">Toutes les catégories</option>
+                            {% for category in categories %}
+                                <option value="{{ category.slug }}"
+                                        {% if request.GET.category == category.slug %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-search"></i> Rechercher
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Liste des articles -->
+        {% for article in articles %}
+            <article class="card mb-4 article-card">
+                {% if article.featured_image %}
+                    <img src="{{ article.featured_image.url }}" 
+                         alt="{{ article.title }}" 
+                         class="card-img-top article-image">
+                {% endif %}
+                
                 <div class="card-body">
-                    <!-- Sidebar content -->
+                    <h2 class="card-title h4">
+                        <a href="{{ article.get_absolute_url }}" 
+                           class="text-decoration-none text-dark">
+                            {{ article.title }}
+                        </a>
+                    </h2>
+                    
+                    <p class="card-text">{{ article.content|truncatewords:50 }}</p>
+                    
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-muted small">
+                            <i class="fas fa-user"></i> Par {{ article.author.username }}<br>
+                            <i class="far fa-calendar"></i> {{ article.created_at|date:"d/m/Y" }}<br>
+                            <i class="far fa-eye"></i> {{ article.views }} vue{{ article.views|pluralize }}
+                        </div>
+                        
+                        {% if article.category %}
+                            <a href="{% url 'category_detail' article.category.slug %}" 
+                               class="badge bg-secondary text-decoration-none">
+                                {{ article.category.name }}
+                            </a>
+                        {% endif %}
+                    </div>
+
+                    {% if article.tags.all %}
+                        <div class="mt-2">
+                            {% for tag in article.tags.all %}
+                                <a href="{% url 'tag_detail' tag.slug %}" 
+                                   class="badge bg-light text-dark text-decoration-none">
+                                    #{{ tag.name }}
+                                </a>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+            </article>
+        {% empty %}
+            <div class="alert alert-info">
+                Aucun article trouvé.
+            </div>
+        {% endfor %}
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+            <nav aria-label="Navigation des pages">
+                <ul class="pagination justify-content-center">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page=1{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+
+                    <li class="page-item active">
+                        <span class="page-link">
+                            Page {{ page_obj.number }} sur {{ page_obj.paginator.num_pages }}
+                        </span>
+                    </li>
+
+                    {% if page_obj.has_next %}
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        <li class="page-item">
+                            <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.search %}&search={{ request.GET.search }}{% endif %}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </nav>
+        {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-md-4">
+        <!-- Catégories -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="h5 mb-0">Catégories</h3>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                    {% for category in categories %}
+                        <li class="mb-2">
+                            <a href="{% url 'category_detail' category.slug %}" 
+                               class="text-decoration-none d-flex justify-content-between align-items-center">
+                                {{ category.name }}
+                                <span class="badge bg-primary rounded-pill">
+                                    {{ category.blog_posts.count }}
+                                </span>
+                            </a>
+                        </li>
+                    {% empty %}
+                        <li>Aucune catégorie</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Tags -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="h5 mb-0">Tags populaires</h3>
+            </div>
+            <div class="card-body">
+                <div class="d-flex flex-wrap gap-2">
+                    {% for tag in tags %}
+                        <a href="{% url 'tag_detail' tag.slug %}" 
+                           class="text-decoration-none">
+                            <span class="badge bg-light text-dark">
+                                #{{ tag.name }}
+                            </span>
+                        </a>
+                    {% empty %}
+                        <p class="mb-0">Aucun tag</p>
+                    {% endfor %}
                 </div>
             </div>
         </div>
     </div>
-  
+</div>
 {% endblock content %}
+
+{% block extra_css %}
+<style>
+    .article-card {
+        transition: transform 0.2s;
+    }
+    .article-card:hover {
+        transform: translateY(-5px);
+    }
+    .article-image {
+        height: 200px;
+        object-fit: cover;
+    }
+</style>
+{% endblock %}

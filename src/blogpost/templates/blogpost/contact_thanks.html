@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4 text-center">
+  <h1>Merci !</h1>
+  <p>Votre message a été reçu. Nous vous répondrons dès que possible.</p>
+  <a href="{% url 'blogpost_list' %}" class="btn btn-outline-primary">Retour à l'accueil</a>
+</div>
+{% endblock %}

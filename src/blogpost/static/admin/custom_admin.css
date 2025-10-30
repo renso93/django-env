@@ -1,0 +1,37 @@
+:root {
+  --cm-read-color: #155724;
+  --cm-read-bg: #d4edda;
+  --cm-unread-color: #721c24;
+  --cm-unread-bg: #f8d7da;
+  --cm-badge-padding: 3px 8px;
+  --cm-badge-radius: 6px;
+}
+
+.cm-badge {
+  display: inline-block;
+  padding: var(--cm-badge-padding);
+  border-radius: var(--cm-badge-radius);
+  font-weight: 600;
+  line-height: 1;
+}
+
+.cm-badge-read {
+  color: var(--cm-read-color);
+  background-color: var(--cm-read-bg);
+}
+
+.cm-badge-unread {
+  color: var(--cm-unread-color);
+  background-color: var(--cm-unread-bg);
+}
+
+/* Style the small action button slightly to match admin buttons */
+a.button {
+  background: #007bff;
+  color: white !important;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+a.button:hover { opacity: 0.9; }

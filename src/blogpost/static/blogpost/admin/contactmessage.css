@@ -1,0 +1,28 @@
+.cm-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.cm-badge-read {
+  color: #155724;
+  background-color: #d4edda;
+}
+
+.cm-badge-unread {
+  color: #721c24;
+  background-color: #f8d7da;
+}
+
+/* Style the small action button slightly to match admin buttons */
+a.button {
+  background: #007bff;
+  color: white !important;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-decoration: none;
+}
+
+a.button:hover { opacity: 0.9; }

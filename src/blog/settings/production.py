@@ -1,7 +1,13 @@
 from .base import *
+import os
 
 DEBUG = False
 ALLOWED_HOSTS = config('AllOWED_HOSTS', cast=lambda v: [s.strip() for s in v.split(',')])
+# reCAPTCHA keys (Google) - replace with your production keys
+# Get them from: https://www.google.com/recaptcha/admin
+# Read from the environment in a portable way (falls back to empty string)
+RECAPTCHA_PUBLIC_KEY = os.environ.get('RECAPTCHA_PUBLIC_KEY', '')
+RECAPTCHA_PRIVATE_KEY = os.environ.get('RECAPTCHA_PRIVATE_KEY', '')
 
 # Sécurité
 SECURE_SSL_REDIRECT = True

@@ -1,0 +1,193 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if form.instance.pk %}
+        Modifier {{ form.instance.title }}
+    {% else %}
+        Nouvel article
+    {% endif %} 
+    - Mon Blog
+{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="h3 mb-0">
+                        {% if form.instance.pk %}
+                            Modifier l'article
+                        {% else %}
+                            Créer un nouvel article
+                        {% endif %}
+                    </h1>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data" class="article-form">
+                        {% csrf_token %}
+
+                        <!-- Titre -->
+                        <div class="mb-3">
+                            <label for="{{ form.title.id_for_label }}" class="form-label">
+                                {{ form.title.label }}
+                            </label>
+                            <input type="text" 
+                                   name="{{ form.title.name }}"
+                                   id="{{ form.title.id_for_label }}"
+                                   class="form-control {% if form.title.errors %}is-invalid{% endif %}"
+                                   value="{{ form.title.value|default:'' }}"
+                                   required>
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.title.errors|join:" " }}
+                                </div>
+                            {% endif %}
+                            {% if form.title.help_text %}
+                                <small class="form-text text-muted">{{ form.title.help_text }}</small>
+                            {% endif %}
+                        </div>
+
+                        <!-- Contenu -->
+                        <div class="mb-3">
+                            <label for="{{ form.content.id_for_label }}" class="form-label">
+                                {{ form.content.label }}
+                            </label>
+                            <textarea name="{{ form.content.name }}"
+                                      id="{{ form.content.id_for_label }}"
+                                      class="form-control {% if form.content.errors %}is-invalid{% endif %}"
+                                      rows="12"
+                                      required>{{ form.content.value|default:'' }}</textarea>
+                            {% if form.content.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.content.errors|join:" " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Image mise en avant -->
+                        <div class="mb-3">
+                            <label for="{{ form.featured_image.id_for_label }}" class="form-label">
+                                {{ form.featured_image.label }}
+                            </label>
+                            {% if form.instance.featured_image %}
+                                <div class="mb-2">
+                                    <img src="{{ form.instance.featured_image.url }}" 
+                                         alt="Image actuelle"
+                                         class="img-thumbnail"
+                                         style="max-height: 200px">
+                                </div>
+                            {% endif %}
+                            <input type="file"
+                                   name="{{ form.featured_image.name }}"
+                                   id="{{ form.featured_image.id_for_label }}"
+                                   class="form-control {% if form.featured_image.errors %}is-invalid{% endif %}"
+                                   accept="image/*">
+                            {% if form.featured_image.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.featured_image.errors|join:" " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Catégorie -->
+                        <div class="mb-3">
+                            <label for="{{ form.category.id_for_label }}" class="form-label">
+                                {{ form.category.label }}
+                            </label>
+                            <select name="{{ form.category.name }}"
+                                    id="{{ form.category.id_for_label }}"
+                                    class="form-select {% if form.category.errors %}is-invalid{% endif %}">
+                                <option value="">Sélectionner une catégorie</option>
+                                {% for value, label in form.category.field.choices %}
+                                    <option value="{{ value }}"
+                                            {% if value == form.category.value|stringformat:"s" %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.category.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.category.errors|join:" " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Tags -->
+                        <div class="mb-3">
+                            <label class="form-label">{{ form.tags.label }}</label>
+                            <div class="tags-container">
+                                {% for checkbox in form.tags %}
+                                    <div class="form-check form-check-inline">
+                                        {{ checkbox.tag }}
+                                        <label class="form-check-label" for="{{ checkbox.id_for_label }}">
+                                            {{ checkbox.choice_label }}
+                                        </label>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% if form.tags.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ form.tags.errors|join:" " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Statut -->
+                        <div class="mb-4">
+                            <label for="{{ form.status.id_for_label }}" class="form-label">
+                                {{ form.status.label }}
+                            </label>
+                            <select name="{{ form.status.name }}"
+                                    id="{{ form.status.id_for_label }}"
+                                    class="form-select {% if form.status.errors %}is-invalid{% endif %}">
+                                {% for value, label in form.status.field.choices %}
+                                    <option value="{{ value }}"
+                                            {% if value == form.status.value %}selected{% endif %}>
+                                        {{ label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.status.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.status.errors|join:" " }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Boutons -->
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{% url 'blogpost_list' %}" class="btn btn-secondary">
+                                Annuler
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                {% if form.instance.pk %}
+                                    Mettre à jour
+                                {% else %}
+                                    Publier
+                                {% endif %}
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_css %}
+<style>
+    .article-form textarea {
+        font-size: 1.1rem;
+    }
+    .tags-container {
+        max-height: 150px;
+        overflow-y: auto;
+        border: 1px solid #dee2e6;
+        border-radius: 0.25rem;
+        padding: 0.5rem;
+    }
+</style>
+{% endblock %}

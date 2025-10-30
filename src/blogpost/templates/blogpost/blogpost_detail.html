@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ article.title }} - Mon Blog{% endblock title %}
+
+{% block content %}
+<article class="card mb-4">
+    {% if article.featured_image %}
+        <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="card-img-top">
+    {% endif %}
+    
+    <div class="card-body">
+        <h1 class="card-title mb-4">{{ article.title }}</h1>
+        
+        <div class="mb-3">
+            <small class="text-muted">
+                Par {{ article.author.username }} le {{ article.created_at|date:"d/m/Y" }}
+                {% if article.updated_at != article.created_at %}
+                    (Modifié le {{ article.updated_at|date:"d/m/Y" }})
+                {% endif %}
+                - {{ article.views }} vue{{ article.views|pluralize }}
+            </small>
+        </div>
+
+        <div class="card-text mb-4">{{ article.content|linebreaks }}</div>
+
+        {% if article.category %}
+            <div class="mb-3">
+                <strong>Catégorie :</strong> 
+                <a href="{{ article.category.get_absolute_url }}" class="text-decoration-none">
+                    {{ article.category.name }}
+                </a>
+            </div>
+        {% endif %}
+
+        {% if article.tags.all %}
+            <div class="mb-3">
+                <strong>Tags :</strong>
+                {% for tag in article.tags.all %}
+                    <a href="{{ tag.get_absolute_url }}" class="badge bg-secondary text-decoration-none">
+                        {{ tag.name }}
+                    </a>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% if user == article.author or user.is_staff %}
+            <div class="mt-4">
+                <a href="{% url 'blogpost_edit' article.slug %}" class="btn btn-primary">Modifier</a>
+                <a href="{% url 'blogpost_delete' article.slug %}" class="btn btn-danger">Supprimer</a>
+            </div>
+        {% endif %}
+    </div>
+</article>
+{% endblock content %}

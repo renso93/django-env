@@ -1,0 +1,9 @@
+Django>=5.2
+Pillow
+django-extensions
+# Add django-redis if you plan to use Redis as cache backend
+django-redis
+# For API filtering
+django-filter
+# Optional: reCAPTCHA support
+django-recaptcha
