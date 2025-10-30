@@ -1,0 +1,18 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="{% url 'blogpost_list' %}">Accueil</a></li>
+    {% if category %}
+      <li class="breadcrumb-item"><a href="{% url 'category_list' %}">Catégories</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+    {% elif article %}
+      <li class="breadcrumb-item"><a href="{% url 'blogpost_list' %}">Articles</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ article.title }}</li>
+    {% else %}
+      <li class="breadcrumb-item active" aria-current="page">Blog</li>
+    {% endif %}
+    </ol>
+</nav>
+{% endblock content %}  

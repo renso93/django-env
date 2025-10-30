@@ -6,7 +6,7 @@
 {% block content %}
 <article class="card mb-4">
     {% if article.featured_image %}
-        <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="card-img-top">
+        <img src="{{ article.featured_image.url }}" alt="{{ article.title }}" class="card-img-top"  style="width: 300px; height: 300px;">
     {% endif %}
     
     <div class="card-body">

@@ -1,7 +1,10 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.urls import reverse
+from django.core.exceptions import ValidationError
 from PIL import Image
+from .utils.text import clean_html, generate_unique_slug
+from .utils.constants import POST_STATUS, IMAGE_SIZES, POSTS_PER_PAGE, MAX_CONTENT_LENGTH, MIN_CONTENT_LENGTH
 
 # Create your models here.
 class CustomUser(AbstractUser):
@@ -26,8 +29,8 @@ class CustomUser(AbstractUser):
         if self.avatar:
             img = Image.open(self.avatar.path)
 
-            if img.height > 300 or img.width > 300:
-                output_size = (300, 300)
+            if img.height > IMAGE_SIZES['THUMBNAIL'][1] or img.width > IMAGE_SIZES['THUMBNAIL'][0]:
+                output_size = IMAGE_SIZES['THUMBNAIL']
                 img.thumbnail(output_size)
                 img.save(self.avatar.path)
 
@@ -50,6 +53,10 @@ class Category(models.Model):
 
 class BlogPost(models.Model):
     """Représentation du model blog post.
+    
+    Ce modèle représente les articles du blog avec leur contenu,
+    métadonnées et relations avec d'autres modèles.
+
     Attributs:
         title (str): Le titre de l'article de blog.
         slug (str): Le slug unique pour l'URL de l'article.
@@ -62,12 +69,17 @@ class BlogPost(models.Model):
         created_at (DateTimeField): La date et l'heure de création de l'article.
         updated_at (DateTimeField): La date et l'heure de la dernière mise à jour de l'article.
         views (PositiveIntegerField): Le nombre de vues de l'article.
+
+    Méthodes:
+        clean(): Valide les données avant la sauvegarde.
+        save(): Gère la sauvegarde avec le nettoyage des données.
+        get_absolute_url(): Retourne l'URL de l'article.
     """
 
     STATUS_CHOICES = [
-        ('draft', 'Brouillon'),
-        ('published', 'Publié'),
-        ('archived', 'Archivé'),
+        (POST_STATUS['DRAFT'], 'Brouillon'),
+        (POST_STATUS['PUBLISHED'], 'Publié'),
+        (POST_STATUS['ARCHIVED'], 'Archivé'),
     ]
 
     title = models.CharField(max_length=200)
@@ -89,6 +101,32 @@ class BlogPost(models.Model):
                    models.Index(fields=['slug'])
                    ]
         
+    def clean(self):
+        """Valide les données avant la sauvegarde."""
+        # Nettoyage du contenu HTML
+        self.content = clean_html(self.content)
+        
+        # Validation de la longueur du contenu
+        if len(self.content) < MIN_CONTENT_LENGTH:
+            raise ValidationError({
+                'content': f'Le contenu doit faire au moins {MIN_CONTENT_LENGTH} caractères.'
+            })
+            
+        if len(self.content) > MAX_CONTENT_LENGTH:
+            raise ValidationError({
+                'content': f'Le contenu ne doit pas dépasser {MAX_CONTENT_LENGTH} caractères.'
+            })
+
+    def save(self, *args, **kwargs):
+        # Génère un slug unique si non fourni
+        if not self.slug:
+            self.slug = generate_unique_slug(self, self.title, 'slug')
+            
+        # Validation complète
+        self.full_clean()
+            
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return self.title
     

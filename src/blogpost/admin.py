@@ -1,19 +1,98 @@
 from django.contrib import admin
-from .models import BlogPost, Category
+from django.urls import path
+from django.shortcuts import redirect, get_object_or_404
+from django.utils.html import format_html
+from .models import BlogPost, Category, Tag, ContactMessage, CustomUser
 
-# Register your models here.
+@admin.register(CustomUser)
+class CustomUserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff')
+    search_fields = ('username', 'email', 'first_name', 'last_name')
+    list_filter = ('is_staff', 'is_active')
+    fieldsets = (
+        (None, {'fields': ('username', 'password')}),
+        ('Informations personnelles', {'fields': ('first_name', 'last_name', 'email', 'avatar', 'bio', 'location', 'birth_date')}),
+        ('Permissions', {'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions')}),
+        ('Dates importantes', {'fields': ('last_login', 'date_joined')}),
+    )
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'created_at', 'post_count')
+    search_fields = ('name', 'slug')
+    prepopulated_fields = {'slug': ('name',)}
+
+    @admin.display(description='Articles')
+    def post_count(self, obj):
+        """Return le nombre d'articles dans la catégorie."""
+        return obj.blog_posts.count()
+
+
+@admin.register(Tag)
+class TagAdmin(admin.ModelAdmin):
+    list_display = ('name', 'slug', 'post_count')
+    search_fields = ('name', 'slug')
+    prepopulated_fields = {'slug': ('name',)}
+
+    @admin.display(description='Articles')
+    def post_count(self, obj):
+        """Return le nombre d'articles avec ce tag."""
+        return obj.blogpost_set.count()
+
+
 @admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
-    pass
+    list_display = ('title', 'author', 'category', 'status', 'created_at', 'views', 'get_tags')
+    list_filter = ('status', 'category', 'author', 'created_at')
+    search_fields = ('title', 'content', 'author__username', 'category__name', 'tags__name')
+    readonly_fields = ('created_at', 'updated_at', 'views', 'slug')
+    autocomplete_fields = ['author', 'category', 'tags']
 
-from .models import ContactMessage
-
+    @admin.display(description='Vues')
+    def views(self, obj):
+        """Affiche le nombre de vues de l'article."""
+        return obj.views
+    
+    fieldsets = (
+        ('Contenu', {
+            'fields': ('title', 'slug', 'content', 'featured_image')
+        }),
+        ('Relations', {
+            'fields': ('author', 'category', 'tags')
+        }),
+        ('Publication', {
+            'fields': ('status', 'created_at', 'updated_at')
+        }),
+        ('Statistiques', {
+            'fields': ('views',),
+            'classes': ('collapse',)
+        }),
+    )
+    
+    actions = ['make_published', 'make_draft']
+    
+    @admin.action(description="Publier les articles sélectionnés")
+    def make_published(self, request, queryset):
+        updated = queryset.update(status='published')
+        self.message_user(request, f"{updated} article(s) marqué(s) comme publié(s).")
+    
+    @admin.action(description="Mettre en brouillon les articles sélectionnés")
+    def make_draft(self, request, queryset):
+        updated = queryset.update(status='draft')
+        self.message_user(request, f"{updated} article(s) mis en brouillon.")
+    
+    @admin.display(description='Tags')
+    def get_tags(self, obj):
+        """Return a comma-separated list of tag names."""
+        return ", ".join(t.name for t in obj.tags.all())
 
 @admin.register(ContactMessage)
 class ContactMessageAdmin(admin.ModelAdmin):
-    list_display = ('name', 'email', 'subject', 'created_at', 'read_badge')
+    list_display = ('name', 'email', 'subject', 'created_at', 'read_badge', 'mark_read_link')
     list_filter = ('read', 'created_at')
     search_fields = ('name', 'email', 'subject', 'message')
+    ordering = ('-created_at',)
 
     actions = ['mark_as_read', 'mark_as_unread']
 

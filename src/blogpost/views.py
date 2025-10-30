@@ -11,18 +11,20 @@ from django.conf import settings
 from django.views.generic import TemplateView
 
 from .models import BlogPost, Category, Tag, CustomUser
-from .forms import BlogPostForm
-from .forms import ContactForm
+from .forms import BlogPostForm, ContactForm
 from .models import ContactMessage
+from .services.blog_services import increment_view_count, get_related_posts, get_popular_posts
+from .utils.text import generate_unique_slug, clean_html
+from .utils.constants import POSTS_PER_PAGE, POST_STATUS
 
 class BlogPostListView(ListView):
     model = BlogPost
     template_name = 'blogpost/blogpost_list.html'
     context_object_name = 'articles'
-    paginate_by = 10
+    paginate_by = POSTS_PER_PAGE
 
     def get_queryset(self):
-        queryset = BlogPost.objects.filter(status='published')
+        queryset = BlogPost.objects.filter(status=POST_STATUS['PUBLISHED'])
         
         # Recherche
         search = self.request.GET.get('search')
@@ -58,19 +60,16 @@ class BlogPostDetailView(DetailView):
         # Récupère l'article et incrémente le compteur de vues
         obj = get_object_or_404(BlogPost, 
                               slug=self.kwargs['slug'],
-                              status='published')
-        obj.views += 1
-        obj.save(update_fields=['views'])
+                              status=POST_STATUS['PUBLISHED'])
+        increment_view_count(obj)
         return obj
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         article = self.get_object()
         # Ajoute les articles liés par catégorie
-        context['related_articles'] = BlogPost.objects.filter(
-            category=article.category,
-            status='published'
-        ).exclude(id=article.id)[:3]
+        context['related_articles'] = get_related_posts(article)
+        context['popular_posts'] = get_popular_posts(5)
         return context
 
 class BlogPostCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
@@ -81,9 +80,8 @@ class BlogPostCreateView(LoginRequiredMixin, SuccessMessageMixin, CreateView):
 
     def form_valid(self, form):
         form.instance.author = self.request.user
-        # Génère un slug unique si non fourni
-        if not form.instance.slug:
-            form.instance.slug = slugify(form.instance.title)
+        # Génère un slug unique à partir du titre
+        form.instance.slug = generate_unique_slug(form.instance, form.instance.title, 'slug')
         return super().form_valid(form)
 
 class BlogPostUpdateView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, UpdateView):
@@ -99,7 +97,9 @@ class BlogPostUpdateView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessage
     def form_valid(self, form):
         # Met à jour le slug si le titre a changé
         if form.instance.title != self.get_object().title:
-            form.instance.slug = slugify(form.instance.title)
+            form.instance.slug = generate_unique_slug(form.instance, form.instance.title, 'slug')
+        # Nettoie le contenu HTML
+        form.instance.content = clean_html(form.instance.content)
         return super().form_valid(form)
 
 class BlogPostDeleteView(LoginRequiredMixin, UserPassesTestMixin, SuccessMessageMixin, DeleteView):

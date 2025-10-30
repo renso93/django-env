@@ -1,7 +1,8 @@
 from django.test import TestCase
 from django.urls import reverse
 
-from .models import CustomUser, BlogPost, Category
+from ..models import CustomUser, BlogPost, Category, ContactMessage
+from ..forms import ContactForm
 
 
 class DraftListViewTests(TestCase):
@@ -44,7 +45,7 @@ class NavCategoriesCacheTests(TestCase):
 		from django.core.cache import cache
 		# prime cache
 		cache.set('nav_categories', ['sentinel'], 3600)
-		from .models import Category
+		from ..models import Category
 
 		# create category -> should clear cache via signal
 		Category.objects.create(name='New', slug='new')
@@ -60,7 +61,7 @@ class NavCategoriesCacheTests(TestCase):
 		from django.core.cache import cache
 		# prime cache
 		cache.set('nav_categories', ['sentinel3'], 3600)
-		from .models import BlogPost, Category
+		from ..models import BlogPost, Category
 		user = CustomUser.objects.create_user(username='u1', password='p')
 		cat = Category.objects.create(name='C1', slug='c1')
 		# create blogpost -> should clear cache
@@ -95,7 +96,7 @@ class ContactFormTests(TestCase):
 		from django.core import mail
 		from django.urls import reverse
 		from django.test import override_settings
-		from .models import ContactMessage
+		from ..models import ContactMessage
 
 		url = reverse('contact')
 		data = {
@@ -131,7 +132,7 @@ class AdminContactActionsTests(TestCase):
 		User = get_user_model()
 		admin = User.objects.create_superuser(username='admin', email='admin@example.com', password='pass')
 		# create message
-		from .models import ContactMessage
+		from ..models import ContactMessage
 		cm = ContactMessage.objects.create(name='Bob', email='bob@example.com', subject='Hi', message='Test', read=False)
 
 		# login and call toggle URL
@@ -148,8 +149,8 @@ class CaptchaContactTests(TestCase):
 		from django.test import override_settings
 		from django.urls import reverse
 		from unittest.mock import patch
-		from .forms import ContactForm
-		from .models import ContactMessage
+		from ..forms import ContactForm
+		from ..models import ContactMessage
 
 		# simulate keys present
 		with override_settings(RECAPTCHA_PUBLIC_KEY='pk', RECAPTCHA_PRIVATE_KEY='sk'):
