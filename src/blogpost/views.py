@@ -121,30 +121,44 @@ class CategoryListView(ListView):
     template_name = 'blogpost/category_list.html'
     context_object_name = 'categories'
 
-class CategoryDetailView(DetailView):
-    model = Category
+class CategoryDetailView(ListView):
+    """Liste paginée des articles d'une catégorie."""
+    model = BlogPost
     template_name = 'blogpost/category_detail.html'
-    context_object_name = 'category'
+    context_object_name = 'blog_posts'
+    paginate_by = POSTS_PER_PAGE
+
+    def get_queryset(self):
+        # Filter posts by category slug provided in the URL
+        slug = self.kwargs.get('slug')
+        category = get_object_or_404(Category, slug=slug)
+        return BlogPost.objects.filter(category=category, status=POST_STATUS['PUBLISHED']).order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['articles'] = BlogPost.objects.filter(
-            category=self.object,
-            status='published'
-        )
+        # include category for template header
+        context['category'] = get_object_or_404(Category, slug=self.kwargs.get('slug'))
+        context['categories'] = Category.objects.all()
+        context['tags'] = Tag.objects.all()
         return context
 
-class TagDetailView(DetailView):
-    model = Tag
+class TagDetailView(ListView):
+    """Liste paginée des articles pour un tag donné."""
+    model = BlogPost
     template_name = 'blogpost/tag_detail.html'
-    context_object_name = 'tag'
+    context_object_name = 'blog_posts'
+    paginate_by = POSTS_PER_PAGE
+
+    def get_queryset(self):
+        slug = self.kwargs.get('slug')
+        tag = get_object_or_404(Tag, slug=slug)
+        return BlogPost.objects.filter(tags=tag, status=POST_STATUS['PUBLISHED']).order_by('-created_at')
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['articles'] = BlogPost.objects.filter(
-            tags=self.object,
-            status='published'
-        )
+        context['tag'] = get_object_or_404(Tag, slug=self.kwargs.get('slug'))
+        context['categories'] = Category.objects.all()
+        context['tags'] = Tag.objects.all()
         return context
 
 
