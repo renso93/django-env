@@ -15,9 +15,9 @@ class DraftListViewTests(TestCase):
 		# category
 		self.cat = Category.objects.create(name='Test', slug='test')
 
-		# drafts
-		BlogPost.objects.create(title='Draft1', slug='draft1', content='c', author=self.user1, status='draft', category=self.cat)
-		BlogPost.objects.create(title='Draft2', slug='draft2', content='c', author=self.user2, status='draft', category=self.cat)
+		# drafts (content must meet model validation minimum length)
+		BlogPost.objects.create(title='Draft1', slug='draft1', content=('C' * 80), author=self.user1, status='draft', category=self.cat)
+		BlogPost.objects.create(title='Draft2', slug='draft2', content=('C' * 80), author=self.user2, status='draft', category=self.cat)
 
 	def test_anonymous_redirects_to_login(self):
 		resp = self.client.get(reverse('blogpost_drafts'))
@@ -64,13 +64,13 @@ class NavCategoriesCacheTests(TestCase):
 		from ..models import BlogPost, Category
 		user = CustomUser.objects.create_user(username='u1', password='p')
 		cat = Category.objects.create(name='C1', slug='c1')
-		# create blogpost -> should clear cache
-		BlogPost.objects.create(title='B1', slug='b1', content='x', author=user, status='published', category=cat)
+		# create blogpost -> should clear cache (use content meeting validation)
+		BlogPost.objects.create(title='B1', slug='b1', content=('P' * 80), author=user, status='published', category=cat)
 		self.assertIsNone(cache.get('nav_categories'))
 
 		# prime and update blogpost category
 		cache.set('nav_categories', ['sentinel4'], 3600)
-		b = BlogPost.objects.create(title='B2', slug='b2', content='x', author=user, status='published', category=cat)
+		b = BlogPost.objects.create(title='B2', slug='b2', content=('P' * 80), author=user, status='published', category=cat)
 
 		# Updating a non-category field should NOT clear the cache
 		cache.set('nav_categories', ['sentinel4'], 3600)
@@ -86,7 +86,7 @@ class NavCategoriesCacheTests(TestCase):
 
 		# prime and delete
 		cache.set('nav_categories', ['sentinel5'], 3600)
-		b3 = BlogPost.objects.create(title='B3', slug='b3', content='x', author=user, status='published', category=cat)
+		b3 = BlogPost.objects.create(title='B3', slug='b3', content=('P' * 80), author=user, status='published', category=cat)
 		b3.delete()
 		self.assertIsNone(cache.get('nav_categories'))
 

@@ -15,9 +15,9 @@ class BlogPostAPITests(APITestCase):
         self.tag1 = Tag.objects.create(name='T1', slug='t1')
         self.tag2 = Tag.objects.create(name='T2', slug='t2')
 
-        # published and draft posts
-        BlogPost.objects.create(title='P1', slug='p1', content='c', author=self.user, status='published', category=self.cat)
-        BlogPost.objects.create(title='D1', slug='d1', content='c', author=self.user, status='draft', category=self.cat)
+        # published and draft posts (content must meet model validation)
+        BlogPost.objects.create(title='P1', slug='p1', content=('C' * 80), author=self.user, status='published', category=self.cat)
+        BlogPost.objects.create(title='D1', slug='d1', content=('C' * 80), author=self.user, status='draft', category=self.cat)
 
     def test_list_anonymous_shows_published_only(self):
         url = reverse('api-posts-list')
@@ -32,7 +32,7 @@ class BlogPostAPITests(APITestCase):
         self.client.login(username='author', password='pass')
         payload = {
             'title': 'Created',
-            'content': 'ok',
+            'content': ('C' * 80),
             'category': 'cat1',
             'tags': ['t1','t2'],
             'status': 'published'
@@ -44,7 +44,7 @@ class BlogPostAPITests(APITestCase):
         self.assertCountEqual(resp.data['tags'], ['t1','t2'])
 
     def test_author_can_edit_own_post_but_not_others(self):
-        post = BlogPost.objects.create(title='EditMe', slug='editme', content='c', author=self.other, status='published', category=self.cat)
+        post = BlogPost.objects.create(title='EditMe', slug='editme', content=('C' * 80), author=self.other, status='published', category=self.cat)
         url = reverse('api-posts-detail', args=[post.pk])
         # author (not owner) cannot edit
         self.client.login(username='author', password='pass')

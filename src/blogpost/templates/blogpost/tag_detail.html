@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static querystring %}
+
+{% block title %}Tag: {{ tag.name }} - Mon Blog{% endblock title %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+        <div class="col-md-8">
+            <h1 class="h3 mb-4">Tag : #{{ tag.name }}</h1>
+            {% if blog_posts %}
+                {% for post in blog_posts %}
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h2 class="card-title">
+                                <a href="{% url 'blogpost_detail' post.slug %}">{{ post.title }}</a>
+                            </h2>
+                            <p class="card-text">{{ post.content|truncatewords:30|safe }}</p>
+                            <a href="{% url 'blogpost_detail' post.slug %}" class="btn btn-primary">Lire la suite</a>
+                        </div>
+                        <div class="card-footer text-muted">
+                            Par {{ post.author.username }} le {{ post.created_at|date:"d/m/Y" }} - {{ post.views }} vue{{ post.views|pluralize }}
+                        </div>
+                    </div>
+                {% endfor %}
+
+                {% include 'blogpost/_pagination.html' %}
+            {% else %}
+                <div class="alert alert-info">Aucun article pour ce tag.</div>
+            {% endif %}
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header"><h3 class="h5 mb-0">Catégories</h3></div>
+                <div class="card-body">
+                    <ul class="list-unstyled mb-0">
+                        {% for category in categories %}
+                            <li class="mb-2">
+                                <a href="{% url 'category_detail' category.slug %}" class="text-decoration-none d-flex justify-content-between align-items-center">
+                                    {{ category.name }}
+                                    <span class="badge bg-primary rounded-pill">{{ category.blog_posts.count }}</span>
+                                </a>
+                            </li>
+                        {% empty %}
+                            <li>Aucune catégorie</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header"><h3 class="h5 mb-0">Tags populaires</h3></div>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap gap-2">
+                        {% for t in tags %}
+                            <a href="{% url 'tag_detail' t.slug %}" class="text-decoration-none"><span class="badge bg-light text-dark">#{{ t.name }}</span></a>
+                        {% empty %}
+                            <p class="mb-0">Aucun tag</p>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}

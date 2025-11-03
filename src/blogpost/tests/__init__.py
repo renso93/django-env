@@ -1,3 +1,5 @@
-# Make Django discover tests in this directory.
-# Import test modules, but without importing * which can confuse discovery.
-from . import tests, tests_api
+"""
+Package marker for blogpost tests.
+
+Don't import submodules here — test discovery will import them as needed.
+"""
