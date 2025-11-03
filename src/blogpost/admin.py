@@ -43,14 +43,14 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'author', 'category', 'status', 'created_at', 'views', 'get_tags')
+    list_display = ('title', 'author', 'category', 'status', 'created_at', 'view_count', 'get_tags')
     list_filter = ('status', 'category', 'author', 'created_at')
     search_fields = ('title', 'content', 'author__username', 'category__name', 'tags__name')
-    readonly_fields = ('created_at', 'updated_at', 'views', 'slug')
+    readonly_fields = ('created_at', 'updated_at', 'view_count', 'slug')
     autocomplete_fields = ['author', 'category', 'tags']
 
-    @admin.display(description='Vues')
-    def views(self, obj):
+    @admin.display(description='Vues', ordering='views')
+    def view_count(self, obj):
         """Affiche le nombre de vues de l'article."""
         return obj.views
     
@@ -65,7 +65,7 @@ class BlogPostAdmin(admin.ModelAdmin):
             'fields': ('status', 'created_at', 'updated_at')
         }),
         ('Statistiques', {
-            'fields': ('views',),
+            'fields': ('view_count',),
             'classes': ('collapse',)
         }),
     )
